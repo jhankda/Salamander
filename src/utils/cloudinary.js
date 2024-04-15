@@ -13,7 +13,7 @@ console.log(cloudinary.config().cloud_name);
 const uploadOnCloudinary = async (localFilePath) => {
     try {
         
-        const response = await cloudinary.uploader.upload(localFilePath).then((result) => console.log(result));
+        const response = await cloudinary.uploader.upload(localFilePath);
         fs.unlinkSync(localFilePath);
         return response;
     } catch (error) {
