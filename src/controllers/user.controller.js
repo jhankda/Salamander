@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js";
 import {User} from "../models/user.models.js";
-import {uploadCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/Apiresponse.js";
 
 const registerUser  = asyncHandler(async (req,res) => {
@@ -17,11 +17,11 @@ const registerUser  = asyncHandler(async (req,res) => {
 
 
 
-    const {fullName, email ,userName , password} =req.body
+    const {fullName, email ,name , password} =req.body
     console.log("email:",email);
 
     if(
-        [fullName, email ,userName , password].some((field)=> 
+        [fullName, email ,name , password].some((field)=> 
         field?.trim() === "")
     ){
         throw new ApiError(400,"All fields are required")
@@ -30,21 +30,22 @@ const registerUser  = asyncHandler(async (req,res) => {
         console.log("All fields are filled")
     }
 
-    const existedUser = User.findOne({
-        $or: [{email},{userName}]
+    const existedUser = await User.findOne({
+        $or: [{email},{name}]
     })
     if(existedUser){
         throw new ApiError(409,"User already exists")}
 
     const avatarLocalPath = req.files?.avatar[0]?.path;
+    console.log("avatarLocalPath:",avatarLocalPath);
     const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
     if(!avatarLocalPath){
         throw new ApiError(400,"Avatar is required")
     }
 
-    const avatar = await uploadCloudinary(avatarLocalPath)
-    const coverImage = await uploadCloudinary(coverImageLocalPath)
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
     if(!avatar)throw new ApiError(500,"Failed to upload avatar");
 
@@ -53,7 +54,7 @@ const registerUser  = asyncHandler(async (req,res) => {
     const user  = await User.create({
         fullName,
         email,
-        userName: userName.toLowerCase(),
+        name: name.toLowerCase(),
         password,
         avatar: avatar.url,
         coverImage: coverImage?.url || ""
