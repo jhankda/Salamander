@@ -19,12 +19,12 @@ router.route("/register").post(
     ]),
     registerUser)
 
-router.route("/login").post(verifyJWT, loginUser)
+router.route("/login").post(loginUser)
 
 //sercue routes
 router.route("/logout").post(verifyJWT, logoutUser)
 
-router.route("/refresh-Token").post(refreshAccessToken)
+router.route("/refreshtoken").post(refreshAccessToken)
 
 router.route("/changePsswd").post(verifyJWT,changeCurrentPassword)
 
@@ -32,7 +32,7 @@ router.route("/User").post(verifyJWT,currentUser)
 
 router.route("/update-Account").patch(verifyJWT,updateAccount)
 
-router.route("/apdate-avatar").patch(verifyJWT,upload.single("avatar"),updateAvatarFiles)
+router.route("/update-avatar").patch(verifyJWT,upload.single("avatar"),updateAvatarFiles)
 
 router.route("/update-coverimage").patch(verifyJWT,upload.single("coverImage"),updateCoverImageFiles)
 

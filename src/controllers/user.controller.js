@@ -6,6 +6,8 @@ import { ApiResponse } from "../utils/Apiresponse.js";
 import { json } from "express";
 import jwt from "jsonwebtoken";
 import { Subscription } from "../models/subscriber.models.js";
+import mongoose, { Mongoose } from "mongoose";
+
 
 
 
@@ -157,7 +159,9 @@ const loginUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(
             200,
             {
-                "User": `${loggedInUser, accessToken, refreshToken}`
+                User:`${loggedInUser}`,
+                accessToken:`${accessToken}`,
+                refreshToken:`${refreshToken}`
             },
             "User logged in successfully"
         ))
@@ -171,7 +175,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: { refreshToken: undefined }
+            $unset: { refreshToken: 1 }
         },
         {
             new: true
@@ -214,15 +218,15 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
         }
 
-        const { accessToken, newrefreshToken } = await GenrateAccessAndRefreshTokens(user._id)
+        const { accessToken, refreshToken } = await GenrateAccessAndRefreshTokens(user._id)
 
         return res
             .status(200)
             .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", newrefreshToken, options)
+            .cookie("refreshToken", refreshToken, options)
             .json(new ApiResponse(
                 200,
-                { accessToken, refreshToken: newrefreshToken },
+                { accessToken, refreshToken: refreshToken },
                 "access Token Refreshed Successfully"))
     } catch (error) {
         throw new ApiError(401, error?.message || "Invalid RefreshToken")
@@ -235,6 +239,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { currentPassword, newPassword } = req.body
+    console.log("currentPassword:", currentPassword);
+    console.log("newPassword:", newPassword);
 
     const user = await User.findById(req.user?._id)
     const isPasswordCorrect = await user.isPasswordMatch(currentPassword)
@@ -274,10 +280,12 @@ const updateAccount = asyncHandler(async (req, res) => {
 })
 
 const updateAvatarFiles = asyncHandler(async (req, res) => {
-    const avatarLocalPath = req.file?.path[0]
+    const avatarLocalPath = req.file?.path
 
     if (!avatarLocalPath) {
         throw new ApiError(400, "new Avatar is required")
+    }else{
+        console.log(avatarLocalPath);
     }
     const avatar = await uploadOnCloudinary(avatarLocalPath)
 
@@ -300,7 +308,10 @@ const updateAvatarFiles = asyncHandler(async (req, res) => {
 })
 
 const updateCoverImageFiles = asyncHandler(async (req, res) => {
-    const coverImageLocalPath = req.file?.path[0]
+    const coverImageLocalPath = req.file?.path
+
+    const path = req.file?.path
+    console.log("path:", path)
 
     if (!coverImageLocalPath) {
         throw new ApiError(400, "new coverImage is required")
@@ -327,6 +338,7 @@ const updateCoverImageFiles = asyncHandler(async (req, res) => {
 
 const getUserChannelProfile  = asyncHandler(async(req,res) => {
     const {name} = req.params
+    console.log(name)
     if(!name?.trim()){
         throw new ApiError(400,"Channel name is required")
     }
@@ -335,7 +347,6 @@ const getUserChannelProfile  = asyncHandler(async(req,res) => {
         {
             $match:{name:name}
         },
-        
         {
             $lookup:
             {
@@ -344,6 +355,7 @@ const getUserChannelProfile  = asyncHandler(async(req,res) => {
                 foreignField:"channel",
                 as:"subscribers"
             }
+
 
         },
         {
@@ -362,7 +374,7 @@ const getUserChannelProfile  = asyncHandler(async(req,res) => {
                 subscribedToCount:{$size:"$subscribedTo"},
                 isSubscribed:{
                     $cond:{
-                        if:{$in:[reqq.user?._id,"$subscribers.subscriber"]},
+                        if:{$in:[req.user?._id,"$subscribers.subscriber"]},
                         then:true,
                         else:false
                     }
@@ -375,6 +387,7 @@ const getUserChannelProfile  = asyncHandler(async(req,res) => {
             name:1,
             subscriberCount:1,
             subscribedToCount:1,
+            isSubscribed:1,
             avatar:1,
             coverImage:1,
             email:1,
@@ -386,7 +399,7 @@ const getUserChannelProfile  = asyncHandler(async(req,res) => {
         throw new ApiError(404,"Channel not found")
     }
 
-    return res.status.status(200)
+    return res.status(200)
     .json(new ApiResponse(200,channel[0],"channel fetched successfully"))
 })
 
@@ -396,6 +409,7 @@ const getWatchHistory = asyncHandler(async(req,res) => {
     const user = await User.aggregate([
         {
             $match:{_id:new mongoose.Types.ObjectId(req.user?._id)}
+
         },
         {$lookup:
             {
