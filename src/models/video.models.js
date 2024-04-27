@@ -1,8 +1,9 @@
-import mongoose,{Schema} from 'mongoose;'
+import mongoose,{Schema} from 'mongoose';
 import mongooseAggregatePaginate  from 'mongoose-aggregate-paginate-v2';
 
+
 const videoSchema = new mongoose.Schema({
-    vidioFile:{
+    videoFile:{
         type:String, //cloudnary stored url of video
         required:true
     },
@@ -23,7 +24,7 @@ const videoSchema = new mongoose.Schema({
         required:true
     },
     view:{
-        type:String, //cloudnary stored url of images
+        type:String, 
         default:true
     },
     isPublished:{
