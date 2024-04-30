@@ -8,6 +8,6 @@ router.route("/toggleSubscription/:channelId").patch(verifyJWT,toggleSubscriptio
 
 router.route("/subscribers/:channelId").get(verifyJWT,getUserChannelSubscribers)
 
-router.route("/folows/:channelId").get(verifyJWT,getSubscribedChannels)
+router.route("/follows/:subscriberId").get(verifyJWT,getSubscribedChannels)
 
 export default router;

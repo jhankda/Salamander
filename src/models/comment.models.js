@@ -1,7 +1,7 @@
-import { Schema } from "mongoose";
+import mongoose,{ Schema } from "mongoose";
 import mongooseAggregatePaginate  from 'mongoose-aggregate-paginate-v2';
 
-const commentSchema = new Schema({
+const commentSchema = new mongoose.Schema({
     content:{
         type:String,
         required:true
@@ -15,6 +15,7 @@ const commentSchema = new Schema({
         ref:"Video"
     }
     }
+
 
 ,{timestamps:true})
 
