@@ -72,7 +72,6 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
 const addComment = asyncHandler(async (req, res) => {
     const  {content} = req.body
-    console.log(req.body)
     const {videoId} = req.params
     
     const video = await Video.findById(videoId)
@@ -81,13 +80,7 @@ const addComment = asyncHandler(async (req, res) => {
     {
         throw new ApiError(404, "Video not found")
     }
-    console.log("---->")
-
-    // const { content} = req.body
-
-    console.log(typeof content)
-    console.log(content)
-    console.log("<---")
+    
 
     const newcomment = await Comment.create({
         content,
@@ -107,10 +100,18 @@ const updateComment = asyncHandler(async (req, res) => {
 
 
     const {commentId} = req.params
+    const {content} = req.body
+    console.log(content)
 
     
 
-    const updatecomment  = Comment.findByIdAndUpdate(commentId,req.body,{new:true})
+    const updatecomment  = await  Comment.findByIdAndUpdate(
+      new mongoose.Types.ObjectId(commentId),{
+      $set:{content}
+    },
+    {new:true}).select("_id content owner")
+
+    const upcomment = Comment.findById(commentId)
 
     return res
     .status(200)
@@ -122,7 +123,7 @@ const updateComment = asyncHandler(async (req, res) => {
 const deleteComment = asyncHandler(async (req, res) => {
     const {commentId} = req.params
 
-    const deletecomment = Comment.findByIdAndDelete(commentId)
+    const deletecomment = await Comment.findByIdAndDelete(commentId)
     // TODO: delete a comment
     return res
     .status(200)
